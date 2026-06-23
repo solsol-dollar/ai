@@ -40,6 +40,9 @@ dependencies {
     // Spring AI — pgvector store
     implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
 
+    // Web (REST API)
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
     // Spring Batch
     implementation 'org.springframework.boot:spring-boot-starter-batch'
 
