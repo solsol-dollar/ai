@@ -36,11 +36,17 @@ public class IpoNews {
     @Column(length = 64)
     private String contentHash;
 
+    @Column(length = 255)
+    private String titleKo;
+
     @Column(nullable = false, length = 20)
     private String embeddingStatus = "PENDING";
 
     @Column(length = 36)
     private String vectorDocId;
+
+    @Column(nullable = false, length = 20)
+    private String translationStatus = "PENDING";
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -17,6 +17,8 @@ public interface IpoNewsRepository extends JpaRepository<IpoNews, Long> {
 
     Optional<IpoNews> findByContentHash(String contentHash);
 
+    Optional<IpoNews> findByContentHashAndEmbeddingStatus(String contentHash, String embeddingStatus);
+
     List<IpoNews> findByIpoIdAndStatusAndEmbeddingStatus(Long ipoId, String status, String embeddingStatus);
 
     @Modifying
@@ -28,4 +30,20 @@ public interface IpoNewsRepository extends JpaRepository<IpoNews, Long> {
     @Transactional
     @Query("UPDATE IpoNews n SET n.embeddingStatus = :embeddingStatus WHERE n.id = :id")
     void updateEmbeddingStatus(Long id, String embeddingStatus);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE IpoNews n SET n.titleKo = :titleKo, n.summary = :summaryKo, n.translationStatus = :status WHERE n.id = :id")
+    void updateTranslation(@Param("id") Long id, @Param("titleKo") String titleKo,
+                           @Param("summaryKo") String summaryKo, @Param("status") String status);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE IpoNews n SET n.translationStatus = :status WHERE n.id = :id")
+    void updateTranslationStatus(@Param("id") Long id, @Param("status") String status);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE IpoNews n SET n.titleKo = :titleKo, n.translationStatus = 'COMPLETED' WHERE n.id = :id")
+    void updateTitleKo(@Param("id") Long id, @Param("titleKo") String titleKo);
 }
