@@ -1,0 +1,11 @@
+.env
+*.class
+build/
+.gradle/
+.idea/
+*.iml
+
+# Agent
+.claude/
+CLAUDE.md
+_workspace/

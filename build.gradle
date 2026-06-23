@@ -1,0 +1,74 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.5'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'com.shinhan.eclipse'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+}
+
+ext {
+    springAiVersion = '1.1.0'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+dependencies {
+    // Spring AI — OpenAI (embedding + chat). 1.1.x GA renamed starters to spring-ai-starter-*
+    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+    // Spring AI — pgvector store
+    implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
+
+    // Spring Batch
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+    // JPA (MySQL)
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // DB drivers
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    implementation 'org.postgresql:postgresql'
+
+    // Connection pool for the dual DataSource
+    implementation 'com.zaxxer:HikariCP'
+
+    // Flyway (MySQL only)
+    implementation 'org.flywaydb:flyway-mysql'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.batch:spring-batch-test'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

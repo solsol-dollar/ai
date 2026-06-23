@@ -1,0 +1,6 @@
+app:
+  embedding:
+    min-summary-length: 50
+  rag:
+    similarity-threshold: 0.3
+    search-window-days: 365
