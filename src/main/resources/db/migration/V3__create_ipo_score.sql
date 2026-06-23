@@ -1,0 +1,20 @@
+CREATE TABLE ipo_score (
+    id                          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    ipo_id                      BIGINT NOT NULL,
+    ticker                      VARCHAR(20),
+    final_score                 INT NOT NULL,
+    grade                       VARCHAR(20) NOT NULL,
+    sentiment_component         DECIMAL(6,4),
+    recency_component           DECIMAL(6,4),
+    volume_component            DECIMAL(6,4),
+    source_reliability_component DECIMAL(6,4),
+    signal_strength_component   DECIMAL(6,4),
+    market_timing_component     DECIMAL(6,4),
+    consistency_component       DECIMAL(6,4),
+    risk_penalty                DECIMAL(6,4),
+    news_count                  INT,
+    scored_at                   DATETIME,
+    created_at                  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at                  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_ipo_score (ipo_id)
+);
