@@ -75,3 +75,35 @@ tasks.withType(JavaCompile).configureEach {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+bootRun {
+    // .env 파일을 읽어 Spring Boot 커맨드라인 args로 주입
+    def envFile = rootProject.file('.env')
+    def envVars = [:]
+    if (envFile.exists()) {
+        envFile.readLines().each { line ->
+            if (line && !line.startsWith('#') && line.contains('=')) {
+                def idx = line.indexOf('=')
+                def k = line.substring(0, idx).trim()
+                def v = line.substring(idx + 1).trim()
+                if (v.startsWith('"') && v.endsWith('"')) v = v.substring(1, v.length() - 1)
+                envVars[k] = v
+            }
+        }
+    }
+
+    def argsList = ['--spring.profiles.active=local']
+    def mapping = [
+        'MYSQL_URL'    : 'spring.datasource.url',
+        'MYSQL_USER'   : 'spring.datasource.username',
+        'MYSQL_PASSWORD': 'spring.datasource.password',
+        'PG_URL'       : 'app.datasource.pgvector.url',
+        'PG_USER'      : 'app.datasource.pgvector.username',
+        'PG_PASSWORD'  : 'app.datasource.pgvector.password',
+        'OPENAI_API_KEY': 'spring.ai.openai.api-key'
+    ]
+    mapping.each { envKey, springKey ->
+        if (envVars[envKey]) argsList << "--${springKey}=${envVars[envKey]}"
+    }
+    args argsList
+}
