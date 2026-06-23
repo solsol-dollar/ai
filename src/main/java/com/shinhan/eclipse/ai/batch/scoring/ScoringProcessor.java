@@ -37,8 +37,7 @@ public class ScoringProcessor implements ItemProcessor<Long, IpoScore> {
 
         Ipo ipo = ipoRepository.findById(ipoId).orElse(null);
         List<IpoNews> newsList = ipoNewsRepository
-                .findByStatusAndEmbeddingStatusOrderById("ACTIVE", "COMPLETED")
-                .stream().filter(n -> n.getIpoId().equals(ipoId)).toList();
+                .findByIpoIdAndStatusAndEmbeddingStatus(ipoId, "ACTIVE", "COMPLETED");
 
         // 1. SentimentScore: (-1,1) → (0,1)
         double sentiment = analysis.getSentimentScore() != null

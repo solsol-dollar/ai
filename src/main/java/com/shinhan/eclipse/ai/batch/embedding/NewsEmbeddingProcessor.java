@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import com.shinhan.eclipse.ai.domain.ipo.IpoNews;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -39,7 +40,7 @@ public class NewsEmbeddingProcessor implements ItemProcessor<IpoNews, EmbeddingI
         }
 
         // 임베딩 텍스트 조합
-        String ticker = (news.getSource() != null) ? news.getSource() : "";
+        String ticker = "ipo_" + news.getIpoId();
         String publishedStr = news.getPublishedAt() != null
                 ? news.getPublishedAt().format(DateTimeFormatter.ISO_DATE_TIME) : "";
         String bodyText = body.length() >= 200 ? body.substring(0, Math.min(500, body.length())) : headline;
@@ -67,7 +68,7 @@ public class NewsEmbeddingProcessor implements ItemProcessor<IpoNews, EmbeddingI
 
     private String sha256(String text) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] hash = digest.digest(text.getBytes());
+        byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
         return HexFormat.of().formatHex(hash);
     }
 }
