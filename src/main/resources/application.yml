@@ -10,13 +10,6 @@ spring:
       chat:
         options:
           model: ${OPENAI_CHAT_MODEL:gpt-4o-mini}
-    vectorstore:
-      pgvector:
-        index-type: HNSW
-        distance-type: COSINE_DISTANCE
-        dimensions: 1536
-        initialize-schema: true
-        max-document-batch-size: 20
   datasource:
     url: ${MYSQL_URL}
     username: ${MYSQL_USER}

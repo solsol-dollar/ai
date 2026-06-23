@@ -76,8 +76,14 @@ public class NewsAnalysisProcessor implements ItemProcessor<Long, AnalysisResult
 
         log.info("LLM 응답 수신: ipoId={}, newsCount={}", ipoId, docs.size());
 
+        // 코드펜스 제거 (GPT가 ```json ... ``` 로 감쌀 수 있음)
+        String jsonStr = rawResponse.trim()
+                .replaceAll("(?s)```json\\s*", "")
+                .replaceAll("```", "")
+                .trim();
+
         try {
-            Map<String, Object> parsed = objectMapper.readValue(rawResponse, Map.class);
+            Map<String, Object> parsed = objectMapper.readValue(jsonStr, Map.class);
             List<Integer> sourceIndexes = (List<Integer>) parsed.get("sourceNewsIndexes");
 
             if (sourceIndexes == null || sourceIndexes.isEmpty()) {
@@ -98,7 +104,7 @@ public class NewsAnalysisProcessor implements ItemProcessor<Long, AnalysisResult
             return AnalysisResult.of(ipoId, analysis);
 
         } catch (Exception e) {
-            log.error("LLM 응답 파싱 실패: ipoId={}, error={}", ipoId, e.getMessage());
+            log.error("LLM 응답 파싱 실패: ipoId={}, raw=[{}], error={}", ipoId, rawResponse, e.getMessage());
             return AnalysisResult.of(ipoId, IpoNewsAnalysis.insufficient(ipoId, null));
         }
     }
