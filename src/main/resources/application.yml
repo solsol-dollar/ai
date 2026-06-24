@@ -45,5 +45,14 @@ app:
       username: ${PG_USER}
       password: ${PG_PASSWORD}
 
+spring:
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+
+sqs:
+  queue-url: ${SQS_QUEUE_URL:}
+
 server:
   port: 8083

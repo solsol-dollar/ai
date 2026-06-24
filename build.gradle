@@ -20,11 +20,13 @@ repositories {
 
 ext {
     springAiVersion = '1.1.0'
+    springCloudAwsVersion = '3.2.1'
 }
 
 dependencyManagement {
     imports {
         mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+        mavenBom "io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}"
     }
 }
 
@@ -58,6 +60,9 @@ dependencies {
 
     // Flyway (MySQL only)
     implementation 'org.flywaydb:flyway-mysql'
+
+    // Spring Cloud AWS — SQS (prod 프로파일에서 이벤트 컨슈머로 사용)
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-sqs'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
