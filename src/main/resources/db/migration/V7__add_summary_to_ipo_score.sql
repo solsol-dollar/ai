@@ -1,2 +1,2 @@
 ALTER TABLE ipo_score
-    ADD COLUMN IF NOT EXISTS summary TEXT NULL;
+    ADD COLUMN summary TEXT NULL;
