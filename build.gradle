@@ -45,6 +45,9 @@ dependencies {
     // Web (REST API)
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
+    // Actuator (health check)
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
     // Spring Batch
     implementation 'org.springframework.boot:spring-boot-starter-batch'
 
