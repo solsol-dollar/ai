@@ -6,6 +6,9 @@ spring:
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
+  autoconfigure:
+    exclude:
+      - io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration
 
 app:
   embedding:
