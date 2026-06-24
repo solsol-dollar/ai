@@ -10,13 +10,6 @@ spring:
       chat:
         options:
           model: ${OPENAI_CHAT_MODEL:gpt-4o-mini}
-    vectorstore:
-      pgvector:
-        index-type: HNSW
-        distance-type: COSINE_DISTANCE
-        dimensions: 1536
-        initialize-schema: true
-        max-document-batch-size: 20
   datasource:
     url: ${MYSQL_URL}
     username: ${MYSQL_USER}
@@ -36,6 +29,8 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
 
 app:
   embedding:
@@ -46,9 +41,18 @@ app:
     search-window-days: ${RAG_SEARCH_WINDOW_DAYS:365}
   datasource:
     pgvector:
-      jdbcUrl: ${PG_URL}
+      url: ${PG_URL}
       username: ${PG_USER}
       password: ${PG_PASSWORD}
+
+spring:
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+
+sqs:
+  queue-url: ${SQS_QUEUE_URL:}
 
 server:
   port: 8083

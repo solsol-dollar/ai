@@ -1,6 +1,23 @@
+spring:
+  datasource:
+    url: ${MYSQL_URL}
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+  autoconfigure:
+    exclude:
+      - io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration
+
 app:
   embedding:
     min-summary-length: 50
   rag:
     similarity-threshold: 0.3
     search-window-days: 365
+  datasource:
+    pgvector:
+      url: ${PG_URL}
+      username: ${PG_USER}
+      password: ${PG_PASSWORD}

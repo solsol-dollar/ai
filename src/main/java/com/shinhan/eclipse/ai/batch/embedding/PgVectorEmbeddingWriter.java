@@ -26,9 +26,9 @@ public class PgVectorEmbeddingWriter implements ItemWriter<EmbeddingItem> {
     public void write(Chunk<? extends EmbeddingItem> chunk) {
         List<? extends EmbeddingItem> items = chunk.getItems();
 
-        // 스킵된 항목 처리
+        // 스킵된 항목 처리 (상장 후 뉴스 또는 콘텐츠 기준 미달)
         items.stream().filter(EmbeddingItem::isSkipped)
-             .forEach(item -> statusUpdater.update(item.getNewsId(), "FAILED", null, null));
+             .forEach(item -> statusUpdater.update(item.getNewsId(), "SKIPPED", null, null));
 
         // 임베딩 대상만 필터링
         List<? extends EmbeddingItem> toEmbed = items.stream()

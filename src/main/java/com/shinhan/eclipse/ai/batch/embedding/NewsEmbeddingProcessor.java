@@ -1,5 +1,8 @@
 package com.shinhan.eclipse.ai.batch.embedding;
 
+import com.shinhan.eclipse.ai.domain.ipo.Ipo;
+import com.shinhan.eclipse.ai.domain.ipo.IpoNewsRepository;
+import com.shinhan.eclipse.ai.domain.ipo.IpoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -9,7 +12,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import com.shinhan.eclipse.ai.domain.ipo.IpoNews;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.HexFormat;
@@ -25,11 +30,26 @@ public class NewsEmbeddingProcessor implements ItemProcessor<IpoNews, EmbeddingI
     @Value("${app.embedding.min-summary-length:200}")
     private int minSummaryLength;
 
+    private final IpoRepository ipoRepository;
+    private final IpoNewsRepository ipoNewsRepository;
+
     @Override
     public EmbeddingItem process(IpoNews news) throws Exception {
         String headline = news.getTitle() != null ? news.getTitle() : "";
         String summary  = news.getSummary() != null ? news.getSummary() : "";
         String content  = news.getContent() != null ? news.getContent() : "";
+
+        // 상장 전 뉴스 게이트: listingDate가 있으면 그 이전 뉴스만 임베딩
+        if (news.getPublishedAt() != null) {
+            LocalDate listingDate = ipoRepository.findById(news.getIpoId())
+                    .map(Ipo::getListingDate)
+                    .orElse(null);
+            if (listingDate != null && !news.getPublishedAt().toLocalDate().isBefore(listingDate)) {
+                log.debug("상장 후 뉴스 스킵: newsId={}, publishedAt={}, listingDate={}",
+                        news.getId(), news.getPublishedAt().toLocalDate(), listingDate);
+                return EmbeddingItem.skipped(news.getId());
+            }
+        }
 
         // 콘텐츠 게이트
         String body = !summary.isBlank() ? summary : content;
@@ -39,7 +59,7 @@ public class NewsEmbeddingProcessor implements ItemProcessor<IpoNews, EmbeddingI
         }
 
         // 임베딩 텍스트 조합
-        String ticker = (news.getSource() != null) ? news.getSource() : "";
+        String ticker = "ipo_" + news.getIpoId();
         String publishedStr = news.getPublishedAt() != null
                 ? news.getPublishedAt().format(DateTimeFormatter.ISO_DATE_TIME) : "";
         String bodyText = body.length() >= 200 ? body.substring(0, Math.min(500, body.length())) : headline;
@@ -47,8 +67,12 @@ public class NewsEmbeddingProcessor implements ItemProcessor<IpoNews, EmbeddingI
         String embeddingText = String.format("[%s] %s\n%s\n발행일: %s\n출처: %s",
                 ticker, headline, bodyText, publishedStr, news.getSource() != null ? news.getSource() : "");
 
-        // Content hash (멱등성)
+        // Content hash (멱등성 + 중복 제거)
         String contentHash = sha256(embeddingText);
+        if (ipoNewsRepository.findByContentHashAndEmbeddingStatus(contentHash, "COMPLETED").isPresent()) {
+            log.debug("중복 콘텐츠 스킵: newsId={}", news.getId());
+            return EmbeddingItem.skipped(news.getId());
+        }
 
         // Document UUID
         String docId = UUID.nameUUIDFromBytes(("news-" + news.getId()).getBytes()).toString();
@@ -67,7 +91,7 @@ public class NewsEmbeddingProcessor implements ItemProcessor<IpoNews, EmbeddingI
 
     private String sha256(String text) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] hash = digest.digest(text.getBytes());
+        byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));
         return HexFormat.of().formatHex(hash);
     }
 }
