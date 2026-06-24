@@ -30,7 +30,14 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
-    baseline-version: 0
+    baseline-version: 8
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+
+sqs:
+  queue-url: ${SQS_QUEUE_URL:}
 
 app:
   embedding:
@@ -44,15 +51,6 @@ app:
       url: ${PG_URL}
       username: ${PG_USER}
       password: ${PG_PASSWORD}
-
-spring:
-  cloud:
-    aws:
-      region:
-        static: ap-northeast-2
-
-sqs:
-  queue-url: ${SQS_QUEUE_URL:}
 
 server:
   port: 8083
