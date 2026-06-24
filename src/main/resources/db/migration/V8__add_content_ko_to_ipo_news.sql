@@ -1,1 +1,2 @@
-ALTER TABLE ipo_news ADD COLUMN content_ko TEXT NULL AFTER content;
+ALTER TABLE ipo_news
+    ADD COLUMN IF NOT EXISTS content_ko TEXT NULL;

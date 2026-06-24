@@ -1,6 +1,4 @@
 spring:
-  flyway:
-    validate-on-migrate: false
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
