@@ -46,4 +46,9 @@ public interface IpoNewsRepository extends JpaRepository<IpoNews, Long> {
     @Transactional
     @Query("UPDATE IpoNews n SET n.titleKo = :titleKo, n.translationStatus = 'COMPLETED' WHERE n.id = :id")
     void updateTitleKo(@Param("id") Long id, @Param("titleKo") String titleKo);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE IpoNews n SET n.contentKo = :contentKo WHERE n.id = :id")
+    void updateContentKo(@Param("id") Long id, @Param("contentKo") String contentKo);
 }
