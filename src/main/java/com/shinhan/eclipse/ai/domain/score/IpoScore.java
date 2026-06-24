@@ -26,6 +26,15 @@ public class IpoScore {
     @Column(nullable = false, length = 20)
     private String grade;
 
+    @Column(length = 500)
+    private String reason;
+
+    @Column(columnDefinition = "JSON")
+    private String topNewsIds;
+
+    @Column(columnDefinition = "TEXT")
+    private String summary;
+
     private BigDecimal sentimentComponent;
     private BigDecimal recencyComponent;
     private BigDecimal volumeComponent;
@@ -40,13 +49,16 @@ public class IpoScore {
     private LocalDateTime updatedAt;
 
     public static IpoScore of(Long ipoId, String ticker, int finalScore, String grade,
-            double sentiment, double recency, double volume, double sourceRel,
-            double signal, double timing, double consistency, double risk, int newsCount) {
+            String reason, String topNewsIds, double sentiment, double recency, double volume,
+            double sourceRel, double signal, double timing, double consistency, double risk,
+            int newsCount) {
         IpoScore s = new IpoScore();
         s.ipoId = ipoId;
         s.ticker = ticker;
         s.finalScore = finalScore;
         s.grade = grade;
+        s.reason = reason;
+        s.topNewsIds = topNewsIds;
         s.sentimentComponent      = BigDecimal.valueOf(sentiment);
         s.recencyComponent        = BigDecimal.valueOf(recency);
         s.volumeComponent         = BigDecimal.valueOf(volume);

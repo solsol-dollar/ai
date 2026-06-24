@@ -27,7 +27,9 @@ public class AnalyzedIpoReader implements ItemReader<Long> {
         if (iterator == null) {
             List<Long> ipoIds = analysisRepository.findIpoIdsByAnalysisStatus("COMPLETED")
                     .stream()
-                    .filter(id -> scoreRepository.findByIpoId(id).isEmpty())
+                    .filter(id -> scoreRepository.findByIpoId(id)
+                            .map(s -> s.getReason() == null || s.getTopNewsIds() == null)
+                            .orElse(true))
                     .toList();
             log.info("ScoringJob: 스코어링 대상 IPO {}개", ipoIds.size());
             iterator = ipoIds.iterator();

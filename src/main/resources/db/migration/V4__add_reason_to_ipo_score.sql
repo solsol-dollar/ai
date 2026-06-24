@@ -1,0 +1,2 @@
+ALTER TABLE ipo_score
+    ADD COLUMN reason VARCHAR(500) NULL AFTER grade;
