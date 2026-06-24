@@ -30,6 +30,9 @@ public class IpoNews {
     @Column(columnDefinition = "TEXT")
     private String summary;
 
+    @Column(columnDefinition = "TEXT")
+    private String contentKo;
+
     @Column(nullable = false, length = 20)
     private String status = "ACTIVE";   // BaseEntity의 소프트 삭제 필드
 

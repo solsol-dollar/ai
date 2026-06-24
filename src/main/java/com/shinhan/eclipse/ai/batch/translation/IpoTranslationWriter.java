@@ -21,8 +21,12 @@ public class IpoTranslationWriter implements ItemWriter<IpoTranslationItem> {
         for (IpoTranslationItem item : chunk) {
             if (item.newsId1() != null && item.titleKo1() != null)
                 newsRepository.updateTitleKo(item.newsId1(), item.titleKo1());
+            if (item.newsId1() != null && item.contentKo1() != null)
+                newsRepository.updateContentKo(item.newsId1(), item.contentKo1());
             if (item.newsId2() != null && item.titleKo2() != null)
                 newsRepository.updateTitleKo(item.newsId2(), item.titleKo2());
+            if (item.newsId2() != null && item.contentKo2() != null)
+                newsRepository.updateContentKo(item.newsId2(), item.contentKo2());
             if (item.summary() != null)
                 scoreRepository.updateSummary(item.ipoId(), item.summary());
         }

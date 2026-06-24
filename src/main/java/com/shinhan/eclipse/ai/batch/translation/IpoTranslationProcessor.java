@@ -31,6 +31,20 @@ public class IpoTranslationProcessor implements ItemProcessor<IpoScore, IpoTrans
     @Value("${app.embedding.min-summary-length:50}")
     private int minBodyLength;
 
+    private static final String FULL_TRANSLATION_SYSTEM_PROMPT = """
+            당신은 금융·경제 전문 번역가입니다.
+            제공된 뉴스 본문 전체를 한국어로 번역하세요.
+
+            규칙:
+            - 원문의 모든 내용을 빠짐없이 번역할 것
+            - 번역투 금지, 자연스러운 한국어 문장으로 작성할 것
+            - 회사명·티커·거래소명·인명은 영문 원문 그대로 유지할 것
+            - 금액·수치는 원문 표기 그대로 유지할 것
+            - 본문에 없는 내용은 추가하지 말 것
+            - 투자 권유 표현 금지
+            - 번역문만 출력하고 다른 텍스트는 출력하지 말 것
+            """;
+
     private static final String SYSTEM_PROMPT = """
             당신은 금융·경제 뉴스 한국어 요약 전문가입니다.
             아래 두 개의 IPO 관련 뉴스를 종합하여 투자자에게 유용한 통합 요약을 작성하세요.
@@ -89,15 +103,34 @@ public class IpoTranslationProcessor implements ItemProcessor<IpoScore, IpoTrans
             if (titleKo2 != null && titleKo2.length() > 250) titleKo2 = titleKo2.substring(0, 250);
             if (summary  != null && summary.length()  > 2000) summary  = summary.substring(0, 2000);
 
-            log.info("통합 요약 완료: ipoId={}, ticker={}", score.getIpoId(), score.getTicker());
+            String contentKo1 = translateContent(news1);
+            String contentKo2 = news2 != null ? translateContent(news2) : null;
+
+            log.info("통합 요약·전문 번역 완료: ipoId={}, ticker={}", score.getIpoId(), score.getTicker());
             return new IpoTranslationItem(
                     score.getIpoId(),
-                    news1.getId(), titleKo1,
-                    news2 != null ? news2.getId() : null, titleKo2,
+                    news1.getId(), titleKo1, contentKo1,
+                    news2 != null ? news2.getId() : null, titleKo2, contentKo2,
                     summary
             );
         } catch (Exception e) {
             log.warn("통합 요약 실패: ipoId={}, error={}", score.getIpoId(), e.getMessage());
+            return null;
+        }
+    }
+
+    private String translateContent(IpoNews news) {
+        String content = news.getContent();
+        if (content == null || content.isBlank()) return null;
+        try {
+            String translated = chatModel.call(
+                    new Prompt(List.of(
+                            new SystemMessage(FULL_TRANSLATION_SYSTEM_PROMPT),
+                            new UserMessage(content)))
+            ).getResult().getOutput().getText().trim();
+            return translated.length() > 10000 ? translated.substring(0, 10000) : translated;
+        } catch (Exception e) {
+            log.warn("전문 번역 실패: newsId={}, error={}", news.getId(), e.getMessage());
             return null;
         }
     }
