@@ -48,6 +48,17 @@ public class IpoScore {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    @PrePersist
+    void prePersist() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
     public static IpoScore of(Long ipoId, String ticker, int finalScore, String grade,
             String reason, String topNewsIds, double sentiment, double recency, double volume,
             double sourceRel, double signal, double timing, double consistency, double risk,

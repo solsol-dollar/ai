@@ -46,6 +46,17 @@ public class IpoNewsAnalysis {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    @PrePersist
+    void prePersist() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
     public static IpoNewsAnalysis insufficient(Long ipoId, String ticker) {
         IpoNewsAnalysis a = new IpoNewsAnalysis();
         a.ipoId = ipoId;
