@@ -48,6 +48,24 @@ public class IpoScore {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    // 상장 후 News Score 필드
+    private Integer postFinalScore;
+
+    @Column(length = 30)
+    private String postGrade;
+
+    @Column(length = 500)
+    private String postReason;
+
+    @Column(columnDefinition = "JSON")
+    private String postTopNewsIds;
+
+    @Column(columnDefinition = "TEXT")
+    private String postSummary;
+
+    private Integer postNewsCount;
+    private LocalDateTime postScoredAt;
+
     public static IpoScore of(Long ipoId, String ticker, int finalScore, String grade,
             String reason, String topNewsIds, double sentiment, double recency, double volume,
             double sourceRel, double signal, double timing, double consistency, double risk,
@@ -70,5 +88,19 @@ public class IpoScore {
         s.newsCount = newsCount;
         s.scoredAt = LocalDateTime.now();
         return s;
+    }
+
+    public void updatePostScore(int postFinalScore, String postGrade, String postReason,
+            String postTopNewsIds, int postNewsCount) {
+        this.postFinalScore = postFinalScore;
+        this.postGrade = postGrade;
+        this.postReason = postReason;
+        this.postTopNewsIds = postTopNewsIds;
+        this.postNewsCount = postNewsCount;
+        this.postScoredAt = LocalDateTime.now();
+    }
+
+    public void updatePostSummary(String postSummary) {
+        this.postSummary = postSummary;
     }
 }
