@@ -42,7 +42,7 @@ public class ScoringProcessor implements ItemProcessor<Long, IpoScore> {
 
             {
               "reason": "<이 IPO가 해당 등급을 받은 이유, 한국어 40자 이내 한 문장>",
-              "topNewsIds": [<가장 관련도 높은 뉴스 id 2개, Long 타입>]
+              "topNewsIds": [<관련도 높은 뉴스 id. 출처(source)가 2종류 이상이면 각 출처에서 1개씩 총 2개, 출처가 1종류면 1개만>]
             }
 
             규칙:
@@ -50,6 +50,7 @@ public class ScoringProcessor implements ItemProcessor<Long, IpoScore> {
             - 수치 나열 금지
             - 투자 권유 표현 금지
             - reason은 마침표로 끝낼 것
+            - topNewsIds는 서로 다른 출처(source)의 기사에서만 선택할 것
             - JSON 외 다른 텍스트 출력 금지
             """;
 
@@ -127,11 +128,16 @@ public class ScoringProcessor implements ItemProcessor<Long, IpoScore> {
                     .collect(Collectors.collectingAndThen(
                         Collectors.toList(),
                         list -> {
-                            java.util.Set<String> seen = new java.util.LinkedHashSet<>();
-                            return list.stream()
-                                    .filter(n -> seen.add(n.getTitle().trim().toLowerCase()))
-                                    .limit(5)
-                                    .map(n -> String.format("[id=%d] %s", n.getId(), n.getTitle()))
+                            java.util.LinkedHashMap<String, IpoNews> bySource = new java.util.LinkedHashMap<>();
+                            for (IpoNews n : list) {
+                                String src = n.getSource() != null ? n.getSource() : "unknown";
+                                bySource.putIfAbsent(src, n);
+                            }
+                            return bySource.values().stream()
+                                    .map(n -> String.format("[id=%d] [%s] %s",
+                                            n.getId(),
+                                            n.getSource() != null ? n.getSource() : "unknown",
+                                            n.getTitle()))
                                     .collect(Collectors.joining("\n"));
                         }
                     ));
