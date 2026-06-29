@@ -48,6 +48,23 @@ public class IpoScore {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    private Integer postFinalScore;
+
+    @Column(length = 30)
+    private String postGrade;
+
+    @Column(length = 500)
+    private String postReason;
+
+    @Column(columnDefinition = "JSON")
+    private String postTopNewsIds;
+
+    @Column(columnDefinition = "TEXT")
+    private String postSummary;
+
+    private Integer postNewsCount;
+    private LocalDateTime postScoredAt;
+
     @PrePersist
     void prePersist() {
         createdAt = LocalDateTime.now();
@@ -81,5 +98,19 @@ public class IpoScore {
         s.newsCount = newsCount;
         s.scoredAt = LocalDateTime.now();
         return s;
+    }
+
+    public void updatePostScore(int postFinalScore, String postGrade, String postReason,
+            String postTopNewsIds, int postNewsCount) {
+        this.postFinalScore = postFinalScore;
+        this.postGrade = postGrade;
+        this.postReason = postReason;
+        this.postTopNewsIds = postTopNewsIds;
+        this.postNewsCount = postNewsCount;
+        this.postScoredAt = LocalDateTime.now();
+    }
+
+    public void updatePostSummary(String postSummary) {
+        this.postSummary = postSummary;
     }
 }
