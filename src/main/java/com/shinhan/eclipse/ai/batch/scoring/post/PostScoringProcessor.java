@@ -74,7 +74,7 @@ public class PostScoringProcessor implements ItemProcessor<Long, IpoScore> {
 
             {
               "reason": "<이 IPO가 해당 등급을 받은 이유, 한국어 40자 이내 한 문장>",
-              "topNewsIds": [<가장 관련도 높은 뉴스 id 2개, Long 타입>]
+              "topNewsIds": [<관련도 높은 뉴스 id. 출처(source)가 2종류 이상이면 각 출처에서 1개씩 총 2개, 출처가 1종류면 1개만>]
             }
 
             규칙:
@@ -82,6 +82,7 @@ public class PostScoringProcessor implements ItemProcessor<Long, IpoScore> {
             - 수치 나열 금지
             - 투자 권유 표현 금지
             - reason은 마침표로 끝낼 것
+            - topNewsIds는 서로 다른 출처(source)의 기사에서만 선택할 것
             - JSON 외 다른 텍스트 출력 금지
             """;
 
@@ -224,14 +225,19 @@ public class PostScoringProcessor implements ItemProcessor<Long, IpoScore> {
         try {
             List<String> riskFactors = parseRiskFactors(riskFactorsJson);
 
-            String newsLines = postDocs.stream()
-                    .limit(5)
+            java.util.LinkedHashMap<String, Document> bySource = new java.util.LinkedHashMap<>();
+            for (Document doc : postDocs) {
+                String src = doc.getMetadata().getOrDefault("source", "unknown").toString();
+                bySource.putIfAbsent(src, doc);
+            }
+            String newsLines = bySource.values().stream()
                     .map(doc -> {
                         Object newsId = doc.getMetadata().get("news_id");
+                        String src = doc.getMetadata().getOrDefault("source", "unknown").toString();
                         String title = doc.getText().lines().findFirst().orElse("")
                                 .replaceAll("^\\[.*?\\]\\s*", "");
                         return newsId != null
-                                ? String.format("[id=%d] %s", ((Number) newsId).longValue(), title)
+                                ? String.format("[id=%d] [%s] %s", ((Number) newsId).longValue(), src, title)
                                 : title;
                     })
                     .collect(Collectors.joining("\n"));

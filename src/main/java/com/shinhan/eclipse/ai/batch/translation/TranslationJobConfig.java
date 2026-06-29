@@ -1,5 +1,6 @@
 package com.shinhan.eclipse.ai.batch.translation;
 
+import com.shinhan.eclipse.ai.domain.ipo.IpoNews;
 import com.shinhan.eclipse.ai.domain.score.IpoScore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
@@ -17,6 +18,9 @@ public class TranslationJobConfig {
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
+    private final TopNewsReader topNewsReader;
+    private final NewsTranslationProcessor newsTranslationProcessor;
+    private final NewsTranslationWriter newsTranslationWriter;
     private final IpoTranslationReader translationReader;
     private final IpoTranslationProcessor translationProcessor;
     private final IpoTranslationWriter translationWriter;
@@ -24,7 +28,18 @@ public class TranslationJobConfig {
     @Bean
     public Job translationJob() {
         return new JobBuilder("translationJob", jobRepository)
-                .start(translationStep())
+                .start(translateTopNewsStep())
+                .next(translationStep())
+                .build();
+    }
+
+    @Bean
+    public Step translateTopNewsStep() {
+        return new StepBuilder("translateTopNewsStep", jobRepository)
+                .<IpoNews, TranslationItem>chunk(5, transactionManager)
+                .reader(topNewsReader)
+                .processor(newsTranslationProcessor)
+                .writer(newsTranslationWriter)
                 .build();
     }
 
