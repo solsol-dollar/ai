@@ -12,6 +12,8 @@ public interface IpoNewsRepository extends JpaRepository<IpoNews, Long> {
 
     List<IpoNews> findByStatusAndEmbeddingStatusOrderById(String status, String embeddingStatus);
 
+    List<IpoNews> findByStatusAndEmbeddingStatusInOrderById(String status, List<String> embeddingStatuses);
+
     @Query("SELECT DISTINCT n.ipoId FROM IpoNews n WHERE n.embeddingStatus = :status AND n.status = 'ACTIVE'")
     List<Long> findDistinctIpoIdByEmbeddingStatus(@Param("status") String status);
 

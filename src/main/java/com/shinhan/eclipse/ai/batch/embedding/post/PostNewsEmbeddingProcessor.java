@@ -1,5 +1,6 @@
-package com.shinhan.eclipse.ai.batch.embedding;
+package com.shinhan.eclipse.ai.batch.embedding.post;
 
+import com.shinhan.eclipse.ai.batch.embedding.EmbeddingItem;
 import com.shinhan.eclipse.ai.domain.ipo.Ipo;
 import com.shinhan.eclipse.ai.domain.ipo.IpoNews;
 import com.shinhan.eclipse.ai.domain.ipo.IpoNewsRepository;
@@ -21,11 +22,15 @@ import java.util.HexFormat;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * 상장 후 뉴스(publishedAt >= listingDate)만 pgvector에 임베딩.
+ * newsEmbeddingJob의 상장 전 게이트와 반대 방향으로 동작한다.
+ */
 @Slf4j
 @Component
 @StepScope
 @RequiredArgsConstructor
-public class NewsEmbeddingProcessor implements ItemProcessor<IpoNews, EmbeddingItem> {
+public class PostNewsEmbeddingProcessor implements ItemProcessor<IpoNews, EmbeddingItem> {
 
     @Value("${app.embedding.min-summary-length:200}")
     private int minSummaryLength;
@@ -39,16 +44,17 @@ public class NewsEmbeddingProcessor implements ItemProcessor<IpoNews, EmbeddingI
         String summary  = news.getSummary() != null ? news.getSummary() : "";
         String content  = news.getContent() != null ? news.getContent() : "";
 
-        // 상장 전 뉴스 게이트: listingDate가 있으면 그 이전 뉴스만 임베딩
+        // 상장 후 뉴스 게이트: listingDate 이후 뉴스만 임베딩
         if (news.getPublishedAt() != null) {
             LocalDate listingDate = ipoRepository.findById(news.getIpoId())
                     .map(Ipo::getListingDate)
                     .orElse(null);
-            if (listingDate != null && !news.getPublishedAt().toLocalDate().isBefore(listingDate)) {
-                log.debug("상장 후 뉴스 스킵: newsId={}, publishedAt={}, listingDate={}",
-                        news.getId(), news.getPublishedAt().toLocalDate(), listingDate);
+            if (listingDate == null || news.getPublishedAt().toLocalDate().isBefore(listingDate)) {
+                log.debug("상장 전 뉴스 스킵: newsId={}", news.getId());
                 return EmbeddingItem.skipped(news.getId());
             }
+        } else {
+            return EmbeddingItem.skipped(news.getId());
         }
 
         // 콘텐츠 게이트
@@ -58,26 +64,21 @@ public class NewsEmbeddingProcessor implements ItemProcessor<IpoNews, EmbeddingI
             return EmbeddingItem.skipped(news.getId());
         }
 
-        // 임베딩 텍스트 조합
-        String ticker = "ipo_" + news.getIpoId();
-        String publishedStr = news.getPublishedAt() != null
-                ? news.getPublishedAt().format(DateTimeFormatter.ISO_DATE_TIME) : "";
-        String bodyText = body.length() >= 200 ? body.substring(0, Math.min(500, body.length())) : headline;
+        String ticker     = "ipo_" + news.getIpoId();
+        String publishedStr = news.getPublishedAt().format(DateTimeFormatter.ISO_DATE_TIME);
+        String bodyText   = body.length() >= 200 ? body.substring(0, Math.min(500, body.length())) : headline;
 
         String embeddingText = String.format("[%s] %s\n%s\n발행일: %s\n출처: %s",
                 ticker, headline, bodyText, publishedStr, news.getSource() != null ? news.getSource() : "");
 
-        // Content hash (멱등성 + 중복 제거)
         String contentHash = sha256(embeddingText);
         if (ipoNewsRepository.findByContentHashAndEmbeddingStatus(contentHash, "COMPLETED").isPresent()) {
             log.debug("중복 콘텐츠 스킵: newsId={}", news.getId());
             return EmbeddingItem.skipped(news.getId());
         }
 
-        // Document UUID
-        String docId = UUID.nameUUIDFromBytes(("news-" + news.getId()).getBytes()).toString();
+        String docId = UUID.nameUUIDFromBytes(("post-news-" + news.getId()).getBytes()).toString();
 
-        // pgvector 메타데이터
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("news_id",      news.getId());
         metadata.put("ipo_id",       news.getIpoId());
@@ -86,6 +87,7 @@ public class NewsEmbeddingProcessor implements ItemProcessor<IpoNews, EmbeddingI
         metadata.put("published_at", publishedStr);
 
         Document document = new Document(docId, embeddingText, metadata);
+        log.debug("상장 후 뉴스 임베딩 준비: newsId={}, ipoId={}", news.getId(), news.getIpoId());
         return EmbeddingItem.of(news.getId(), contentHash, docId, document);
     }
 
