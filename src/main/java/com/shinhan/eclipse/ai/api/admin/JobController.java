@@ -31,6 +31,9 @@ public class JobController {
     @Qualifier("scoringJob")
     private final Job scoringJob;
 
+    @Qualifier("postNewsEmbeddingJob")
+    private final Job postNewsEmbeddingJob;
+
     @Qualifier("postScoringJob")
     private final Job postScoringJob;
 
@@ -67,6 +70,7 @@ public class JobController {
             jobLauncher.run(newsEmbeddingJob, params);
             jobLauncher.run(newsAnalysisJob, params);
             jobLauncher.run(scoringJob, params);
+            jobLauncher.run(postNewsEmbeddingJob, params);
             jobLauncher.run(postScoringJob, params);
             jobLauncher.run(translationJob, params);
             jobLauncher.run(postTranslationJob, params);
