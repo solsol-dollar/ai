@@ -31,8 +31,14 @@ public class JobController {
     @Qualifier("scoringJob")
     private final Job scoringJob;
 
+    @Qualifier("postScoringJob")
+    private final Job postScoringJob;
+
     @Qualifier("translationJob")
     private final Job translationJob;
+
+    @Qualifier("postTranslationJob")
+    private final Job postTranslationJob;
 
     @PostMapping("/{jobName}/run")
     public ResponseEntity<Map<String, String>> run(@PathVariable String jobName) {
@@ -61,7 +67,9 @@ public class JobController {
             jobLauncher.run(newsEmbeddingJob, params);
             jobLauncher.run(newsAnalysisJob, params);
             jobLauncher.run(scoringJob, params);
+            jobLauncher.run(postScoringJob, params);
             jobLauncher.run(translationJob, params);
+            jobLauncher.run(postTranslationJob, params);
             log.info("전체 파이프라인 완료");
 
             return ResponseEntity.ok(Map.of("status", "completed"));
