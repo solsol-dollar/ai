@@ -48,7 +48,6 @@ public class IpoScore {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // 상장 후 News Score 필드
     private Integer postFinalScore;
 
     @Column(length = 30)
@@ -65,6 +64,17 @@ public class IpoScore {
 
     private Integer postNewsCount;
     private LocalDateTime postScoredAt;
+
+    @PrePersist
+    void prePersist() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
     public static IpoScore of(Long ipoId, String ticker, int finalScore, String grade,
             String reason, String topNewsIds, double sentiment, double recency, double volume,
